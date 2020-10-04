@@ -1,0 +1,31 @@
+#!/bin/sh
+
+remoteFolder=$1
+shift
+
+echo "testing for remote folder $remoteFolder"
+folderId=$(bw list folders --search $remoteFolder | jq -r '.[0].id')
+
+
+if [ $folderId = null ]
+then
+  echo "folder not found"
+  exit 1
+fi
+
+echo "folder id: $folderId"
+
+for file in "$@"
+do
+  filename=$(basename -- $file)
+  echo "push $file"
+  itemId=$(bw list items --search $filename --folderid $folderId | jq -r '.[0].id' )
+  echo "item id $itemId"
+  if [ $itemId = "null" ]
+  then
+    itemId=$(bw get template item | jq ".name=\"$filename\"" | jq ".folderId=\"$folderId\"" | jq '.notes=""' | jq '.type=2' | jq ".secureNote=$(bw get template item.secureNote)"  | bw encode | bw create item | jq -r '.id')    
+    echo "item id $itemId"
+  fi
+  bw create attachment --file "$file" --itemid "$itemId"
+done
+

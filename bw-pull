@@ -1,0 +1,29 @@
+#!/bin/sh
+
+remoteFolder=$1
+regex=$2
+
+echo "testing for remote folder $remoteFolder"
+folderId=$(bw list folders --search $remoteFolder | jq -r '.[0].id')
+
+if [ $folderId = null ]
+then
+  echo "folder not found"
+  exit 1
+fi
+
+echo "folder id: $folderId"
+
+items=$(bw list items --folderid $folderId)
+files=$( echo $items | jq "[ .[] | select(.name|test(\"$regex\")) | {itemid: .id, filename:.attachments[-1].fileName, id:.attachments[-1].id} ]" )
+length=$( echo $files | jq 'length' )
+length=$((length-1))
+
+for i in $( seq 0 $length)
+do
+  filename=$( echo $files | jq -r ".[$i].filename" )
+  itemid=$( echo $files | jq -r ".[$i].itemid" )
+  id=$( echo $files | jq -r ".[$i].id" )
+  bw get attachment $id --output $filename --itemid $itemid
+done
+
