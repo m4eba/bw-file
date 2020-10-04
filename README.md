@@ -14,6 +14,8 @@ $bw-push <remote_folder> <files>
 
 Makes secure notes with the filename as name and uploads the file as attachments.
 The remote folder needs to exist.
+
+
 Examples:
 
 ```
@@ -28,6 +30,8 @@ $bw-pull <remote_folder> <regex>
 ```
 
 Downloads all files matching the regex from a remote folder.
+
+
 Example
 
 ```
